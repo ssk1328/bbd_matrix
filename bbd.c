@@ -31,8 +31,6 @@ int print_matrix(int size, double * M)
 	int N = size;
 	int elements = size*size;
 
-//	printf("%s \n", "Matrix");
-
 	for (size_t i=0; i<elements; i++){
 		printf(" %g, ", M[i]);
 		if( i%N == (N-1)) {
