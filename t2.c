@@ -25,6 +25,23 @@ void matrix_inv (int size, double * M) {
 
 }
 
+int print_matrix(int size, double * M)
+{
+	/* code */
+	int N = size;
+	int elements = size*size;
+
+	for (size_t i=0; i<elements; i++){
+		printf("%g, ", M[i]);
+		if( i%N == (N-1)) {
+			printf("\n");
+		}
+	}
+
+	return 0;
+}
+
+
 int main() {
 	int N = 4;
 	double M[16] = { 1, 0, 0, 0,
@@ -32,22 +49,9 @@ int main() {
                    	 0, 0, 1, 0,
                    	 0, 0, 0, 1 };
 
-//    int pivotArray[4]; //since our matrix has three rows
-//    int errorHandler;
-//    double lapackWorkspace[16];
-
-//    dgetrf_(&N, &N, M, &N, pivotArray, &errorHandler);
-//    dgetri_(&N, M, &N, pivotArray, lapackWorkspace, &NN, &errorHandler);
-
 	matrix_inv(N, M);
+	print_matrix(N,M);
 
-    for (size_t row = 0; row < N; ++row)
-    {   for (size_t col = 0; col < N; ++col)
-        {   printf ("%g", M[row*N+col]);
-            if (N-1 != col)
-            {   printf (", ");   }   }
-        if (N-1 != row)
-        {   printf ("\n");   }   }
     return 0;   
 }
 
