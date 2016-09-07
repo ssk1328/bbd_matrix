@@ -31,6 +31,8 @@ int print_matrix(int size, double * M)
 	int N = size;
 	int elements = size*size;
 
+//	printf("%s \n", "Matrix");
+
 	for (size_t i=0; i<elements; i++){
 		printf(" %g, ", M[i]);
 		if( i%N == (N-1)) {
@@ -42,24 +44,62 @@ int print_matrix(int size, double * M)
 }
 
 
+struct Matrix {
+   int size;
+   double matrix[100];
+   // row first form 
+};
+
+
 int main() {
+
+	int nMat = 6;
+	struct Matrix mat[nMat];
+	int n; // temp
+
+	#pragma omp prallel for
+	for (int i=0; i<nMat; i++){
+
+		mat[i].size = i+3;
+		n = mat[i].size;
+
+		// Initialize each Matrix
+		for (int j=0; j<n*n; j++) {
+			if( j/n == j%n )		
+				mat[i].matrix[j] = (i+1)*2;
+			else 
+				mat[i].matrix[j] = 0;
+		}
+
+	printf("\n #%d ", i);
+	printf("%s\n", "Matrix Before Inversion");
+	print_matrix(mat[i].size, mat[i].matrix);
+	matrix_inv(mat[i].size, mat[i].matrix);
+	printf("#%d ", i);	
+	printf("%s\n", "Matrix After Inversion");
+	print_matrix(mat[i].size, mat[i].matrix);
+
+	}
+	
+/*
 	int N1 = 4;
 	double M1[16] = { 1, 0, 0, 0,
-					 0, 1, 0, 0,
-                   	 0, 0, 1, 0,
-                   	 0, 0, 0, 1 };
+					  0, 1, 0, 0,
+                   	  0, 0, 1, 0,
+                   	  0, 0, 0, 1 
+                   	};
 
-	int N2 = 3;
-	double M2[16] = { 1, 0, 0, 
+	int N2 = 4;
+	double M2[16] = {  1, 0, 0, 
 					  0, 1, 0, 
-                   	  0, 0, 1, };
+                   	  0, 0, 1 
+                   };
 
-	matrix_inv(N1, M1);
-	print_matrix(N1,M1);
 
 	matrix_inv(N2, M2);
 	print_matrix(N2,M2);
-
+*/
+	printf("\n %s\n", "EndEndEndEndEndEndEndEndEndEndEndEnd" );
     return 0;   
 }
 
