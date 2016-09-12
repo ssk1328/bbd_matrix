@@ -6,8 +6,9 @@
 extern void dgetrf_ (int * m, int * n, double * A, int * LDA, int * IPIV, int * INFO);
 extern void dgetri_ (int * n, double * A, int * LDA, int * IPIV, double * WORK, int * LWORK, int * INFO);
 
+extern void dgemm_(const char *TRANSA, const char *TRANSB, const int *M, const int *N, const int *K, double *ALPHA, double *A, const int *LDA, double *B, const int *LDB, double *BETA, double *C, const int *LDC);
 
-void matrix_inv (int size, double * M) {
+void matrix_inv (int size, double * M, double * B) {
 
 	//	Agruments:
 	//	size: Size of matrix
@@ -20,8 +21,14 @@ void matrix_inv (int size, double * M) {
 	int errorHandler;
 	double lapackWorkspace[elements];
 
-    dgetrf_(&size, &size, M, &size, pivotArray, &errorHandler);
-    dgetri_(&size, M, &size, pivotArray, lapackWorkspace, &elements, &errorHandler);	
+	dgetrf_(&size, &size, M, &size, pivotArray, &errorHandler);
+	dgetri_(&size, M, &size, pivotArray, lapackWorkspace, &elements, &errorHandler);	
+	
+	char TRANS = 'N';
+	double ALPHA = 1.0;
+	double BETA = 0.0;
+
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, A, &size, B, &size, &BETA, B, &size);
 
 }
 
@@ -41,20 +48,59 @@ int print_matrix(int size, double * M)
 	return 0;
 }
 
-
 struct Matrix {
-   int size;
-   double matrix[100];
-   // row first form 
+	int size;
+	double matrix[100];
+	// row first form 
+	// Each matrix can have max size of 10x10
 };
 
+
+void solve_bbd( int nMat, struct Matrix * mat){
+
+	#pragma omp prallel for
+	for (int i=0; i<nMat; i++){
+
+		printf("\n #%d ", i);
+		printf("%s\n", "Matrix Before Inversion");
+		print_matrix(mat[i].size, mat[i].matrix);
+
+		matrix_inv(mat[i].size, matA[i].matrix, matB[i].matrix);
+
+		printf("#%d ", i);	
+		printf("%s\n", "Matrix After Inversion");
+		print_matrix(mat[i].size, mat[i].matrix);
+	}
+
+}
 
 int main() {
 
 	int nMat = 6;
-	struct Matrix mat[nMat];
+	struct Matrix matA[nMat];
+	struct Matrix matB[nMat-1];
+	struct Matrix matC[nMat-1];
+	struct Matrix matG[nMat];
+
 	int n; // temp
 
+	for (int i=0; i<nMat; i++){
+
+		mat[i].size = i+3;
+		n = mat[i].size;
+
+		// Initialize each Matrix
+		for (int j=0; j<n*n; j++) {
+			if( j/n == j%n )
+				mat[i].matrix[j] = (i+1)*2;
+			else 
+				mat[i].matrix[j] = 0;
+		}
+	}
+
+	solve_bbd(nMat, mat);
+
+/*
 	#pragma omp prallel for
 	for (int i=0; i<nMat; i++){
 
@@ -63,7 +109,7 @@ int main() {
 
 		// Initialize each Matrix
 		for (int j=0; j<n*n; j++) {
-			if( j/n == j%n )		
+			if( j/n == j%n )
 				mat[i].matrix[j] = (i+1)*2;
 			else 
 				mat[i].matrix[j] = 0;
@@ -78,6 +124,7 @@ int main() {
 	print_matrix(mat[i].size, mat[i].matrix);
 
 	}
+*/
 	
 /*
 	int N1 = 4;
@@ -97,7 +144,7 @@ int main() {
 	matrix_inv(N2, M2);
 	print_matrix(N2,M2);
 */
-	printf("\n %s\n", "EndEndEndEndEndEndEndEndEndEndEndEnd" );
+	printf("\n %s\n", "End End End End End End End End End End End End" );
     return 0;   
 }
 
