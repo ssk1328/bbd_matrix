@@ -3,6 +3,7 @@
 
 // gcc t2.c -llapack -std=c99
 
+// lapack and blas functions used
 extern void dgetrf_ (int * m, int * n, double * A, int * LDA, int * IPIV, int * INFO);
 extern void dgetri_ (int * n, double * A, int * LDA, int * IPIV, double * WORK, int * LWORK, int * INFO);
 extern void dgemm_(const char *TRANSA, const char *TRANSB, const int *M, const int *N, const int *K, double *ALPHA, double *A, const int *LDA, double *B, const int *LDB, double *BETA, double *C, const int *LDC);
@@ -10,7 +11,6 @@ extern void dscal_ (int * N, double * DA, double * DX, int * INCX);
 
 int print_matrix(int size, double * M)
 {
-	/* code */
 	int N = size;
 	int elements = size*size;
 
@@ -20,7 +20,6 @@ int print_matrix(int size, double * M)
 			printf("\n");
 		}
 	}
-
 	return 0;
 }
 
@@ -30,7 +29,7 @@ void matrix_invm (int size, double * M, double * N, double * R) {
 	//	size: Size of matrix
 	// 	M: Pointer to start of Matrix, stored in an array
 
-	// M = inv(M)*N
+	// R = inv(M)*N
 
 	int elements = size*size;
 	int pivotArray[size];
@@ -41,11 +40,11 @@ void matrix_invm (int size, double * M, double * N, double * R) {
 	double ALPHA = 1.0;
 	double BETA = 0.0;
 
-	// matrix inversion
+	// matrix inversion M = inv(M)
 	dgetrf_(&size, &size, M, &size, pivotArray, &errorHandler);
 	dgetri_(&size, M, &size, pivotArray, lapackWorkspace, &elements, &errorHandler);	
 
-	// matrix multiplication lapackworkspace = B*C
+	// matrix multiplication R = M*N
     dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, N, &size, &BETA, R, &size);
 
 }
@@ -53,42 +52,49 @@ void matrix_invm (int size, double * M, double * N, double * R) {
 void matrix_inv_m (int size, double * M, double * B, double * C, double * D) {
 
 	//	Agruments:
-	//	size: Size of matrix
-	// 	M: Pointer to start of Matrix, stored in an array
+	//	size: 	int - Size of matrix
+	// 	M: 		pointer to double - Pointer to start of Matrix M, stored in contagious array
+	// 	B: 		pointer to double - Pointer to start of Matrix B, stored in contagious array
+	// 	C: 		pointer to double - Pointer to start of Matrix C, stored in contagious array
+	// 	D: 		pointer to double - Pointer to start of Matrix D, stored in contagious array
 
-	// Inverted matrix in again stored in M
+	// C = inv(M)*B*C
+	// D = inv(M)*B*D
 
 	int elements = size*size;
 	int pivotArray[size];
 	int errorHandler;
-	double lapackWorkspace[elements];
-	double lapackWorkspace2[elements];
+	// TODO: Change this to malloc, not a good idea when elements is a large integer
+	double lapackWorkspace0[elements];
+	double lapackWorkspace1[elements];
 
 	char TRANS = 'N';
 	double ALPHA = 1.0;
 	double BETA = 0.0;
+
 	// matrix inversion
+	// Inverted matrix in again stored in M
 	dgetrf_(&size, &size, M, &size, pivotArray, &errorHandler);
-	dgetri_(&size, M, &size, pivotArray, lapackWorkspace, &elements, &errorHandler);	
+	dgetri_(&size, M, &size, pivotArray, lapackWorkspace0, &elements, &errorHandler);	
 
-	// matrix multiplication lapackworkspace = B*C
-    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, B, &size, C, &size, &BETA, lapackWorkspace, &size);
+	// matrix multiplication lapackworkspace0 = B*C
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, B, &size, C, &size, &BETA, lapackWorkspace0, &size);
 
-	// matrix multiplication lapackworkspace2 = B*D
-    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, B, &size, D, &size, &BETA, lapackWorkspace2, &size);
+	// matrix multiplication lapackworkspace1 = B*D
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, B, &size, D, &size, &BETA, lapackWorkspace1, &size);
 
-	// matrix multiplication C = M*lapackworkspace
-    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, lapackWorkspace, &size, &BETA, C, &size);
+	// matrix multiplication C = M*lapackworkspace0
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, lapackWorkspace0, &size, &BETA, C, &size);
 
-	// matrix multiplication D = M*lapackworkspace2
-    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, lapackWorkspace2, &size, &BETA, D, &size);
+	// matrix multiplication D = M*lapackworkspace1
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, lapackWorkspace1, &size, &BETA, D, &size);
 
 }
 
 void matrix_add(int size, double * A, double * B, double scalar)
 {	
 	// A = (A)+(s*B)
-	/* code */
+
 	int N = size;
 	int elements = size*size;
 	for (size_t i=0; i<elements; i++){
@@ -97,15 +103,38 @@ void matrix_add(int size, double * A, double * B, double scalar)
 }
 
 struct Matrix {
-	int size;
-	double matrix[100];
 	// row first form 
 	// Each matrix can have max size of 10x10
+	// TODO Add support for having non square matrices
+	int size;
+	double matrix[100];
 };
 
-void solve_bbd( int nMat, struct Matrix * matA, struct Matrix * matB, struct Matrix * matC, struct Matrix * matG){
+void solve_bbd( int 	nMat, 	
+				struct 	Matrix * matA, 
+				struct 	Matrix * matB, 
+				struct 	Matrix * matC, 
+				struct 	Matrix * matG,
+				struct 	Matrix * matX) 
+{
+/*
 
-	// Initialize Add WorkSpace
+	A 		    C 	X 		G
+	   A 	    C 	X 		G
+	      A     C *	X 	= 	G
+		     A	C 	X 		G
+	B  B  B  B  A 	X 		G
+
+	Arguments:
+	nMat: 	Number of diagonal blocks minus one (nMat = 4 in above example)
+	matA:	Pointer to array of Struct Matrix A, diagonal matrix blocks
+	matB:	Pointer to array of Struct Matrix B, bottom border matrix blocks
+	matC:	Pointer to array of Struct Matrix C, right border matrix blocks
+	matG:	Pointer to array of Struct Matrix G, diagonal matrix
+	matX:	Pointer to array of Struct Matrix X, Blocks of Solution matrix
+
+*/
+
 	int size = matA[0].size;
 	int elements = size*size;
 	double AddG[elements];
@@ -124,9 +153,9 @@ void solve_bbd( int nMat, struct Matrix * matA, struct Matrix * matB, struct Mat
 		// B = inv(A)*C*B
 		// G = inv(A)*C*G
 		matrix_inv_m(matA[i].size, matA[i].matrix, matC[i].matrix, matB[i].matrix, matG[i].matrix);
-		// AddG = AddG + G 
+		// AddG = AddG + G
 		matrix_add(matA[i].size, AddG, matG[i].matrix, 1.0);
-		// AddB = AddB + B 
+		// AddB = AddB + B
 		matrix_add(matA[i].size, AddB, matB[i].matrix, 1.0);
 
 		printf("#%d ", i);
