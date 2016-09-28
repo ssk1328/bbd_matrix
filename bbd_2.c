@@ -4,15 +4,9 @@
 // gcc t2.c -llapack -std=c99
 
 // lapack and blas functions used
-
-// Two step process to compute inverse
 extern void dgetrf_ (int * m, int * n, double * A, int * LDA, int * IPIV, int * INFO);
 extern void dgetri_ (int * n, double * A, int * LDA, int * IPIV, double * WORK, int * LWORK, int * INFO);
-// AX=B
-extern void dgesv_	(int * n, int * NRHS,double * A, int * LDA, int * IPIV, double * B, int * LDB, int * INFO )
-// Matrix Multiplication
 extern void dgemm_(const char *TRANSA, const char *TRANSB, const int *M, const int *N, const int *K, double *ALPHA, double *A, const int *LDA, double *B, const int *LDB, double *BETA, double *C, const int *LDC);
-// Scalar Maultiplication
 extern void dscal_ (int * N, double * DA, double * DX, int * INCX);
 
 int print_matrix(int size, double * M)
@@ -79,7 +73,7 @@ void matrix_invm (int size, double * M, double * N, double * R)
 	dgetri_(&size, M, &size, pivotArray, lapackWorkspace, &elements, &errorHandler);	
 
 	// matrix multiplication R = M*N
-	dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, N, &size, &BETA, R, &size);
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, M, &size, N, &size, &BETA, R, &size);
 
 }
 
@@ -111,14 +105,14 @@ void matrix_inv_m (int size, double * A, double * C, double * B, double * G, dou
 	dgetri_(&size, A, &size, pivotArray, lapackWorkspace0, &elements, &errorHandler);	
 
 	// matrix multiplication lapackworkspace0 = C*inv(A)
-	dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, C, &size, A, &size, &BETA, lapackWorkspace0, &size);
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, C, &size, A, &size, &BETA, lapackWorkspace0, &size);
 
 	// matrix multiplication tempB = lapackworkspace0*B
-	dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, lapackWorkspace0, &size, B, &size, &BETA, tempB, &size);
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, lapackWorkspace0, &size, B, &size, &BETA, tempB, &size);
 
-	// TODO: Replace this with matrix vector multiplication
+    // TODO: Replace this with matrix vector multiplication
 	// matrix multiplication tempG = lapackworkspace0*G
-	dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, lapackWorkspace0, &size, G, &size, &BETA, tempG, &size);
+    dgemm_(&TRANS, &TRANS, &size, &size, &size, &ALPHA, lapackWorkspace0, &size, G, &size, &BETA, tempG, &size);
 
 }
 
@@ -348,6 +342,6 @@ int main() {
 	print_matrix(N2,M2);
 */
 	printf("\n %s\n", "-------------------------------------------------" );
-	return 0;
+    return 0;   
 }
 
