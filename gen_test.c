@@ -50,9 +50,9 @@ struct Matrix {
 
 int main() {
 
-	int N = 2; 	// number of blocks in diagonal
-	int m = 2;	// mxm is the size of Ai
-	int n = 1;	// nxn is the size of AN
+	int N = 1000; 	// number of blocks in diagonal
+	int m = 8;	// mxm is the size of Ai
+	int n = 8;	// nxn is the size of AN
 	FILE *fp;
 	
 	fp = fopen("data.txt", "w+");
