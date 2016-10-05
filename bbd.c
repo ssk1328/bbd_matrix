@@ -39,7 +39,7 @@ int print_vector(int size, double * M)
 }
 
 void matrix_add(int size, double * A, double * B, double scalar)
-{	
+{
 	// A = (A)+(s*B)
 	int N = size;
 	int elements = size*size;

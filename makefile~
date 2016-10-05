@@ -11,9 +11,6 @@ gen_data:
 	gcc -o a.out gen_test.c -llapack -std=c99	
 	./a.out
 
-read_data: 
-	gcc -o a.out read_test.c -llapack -std=c99	
-	./a.out
 
 clean:
 	 rm a.out
