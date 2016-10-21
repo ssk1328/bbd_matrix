@@ -15,11 +15,9 @@ extern void dgemm_(const char *TRANSA, const char *TRANSB, const int *M, const i
 // Scalar Maultiplication
 extern void dscal_ (int * N, double * DA, double * DX, int * INCX);
 
-int print_matrix(int size, double * M)
-{
+int print_matrix(int size, double * M) {
 	int N = size;
 	int elements = size*size;
-
 	for (size_t i=0; i<elements; i++){
 		printf(" %g, ", M[i]);
 		if( i%N == (N-1)) {

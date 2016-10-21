@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/resource.h>
 
 // gcc t2.c -llapack -std=c99
 
@@ -50,9 +51,27 @@ struct Matrix {
 
 int main() {
 
-	int N = 1000; 	// number of blocks in diagonal
-	int m = 8;	// mxm is the size of Ai
-	int n = 8;	// nxn is the size of AN
+    const rlim_t kStackSize = 1024 * 1024 * 1024;   // min stack size = 1024 MB
+    struct rlimit rl;
+    int result;
+
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if (result == 0)
+    {
+        if (rl.rlim_cur < kStackSize)
+        {
+            rl.rlim_cur = kStackSize;
+            result = setrlimit(RLIMIT_STACK, &rl);
+            if (result != 0)
+            {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
+        }
+    }
+
+	int N = 10000; 	// number of blocks in diagonal
+	int m = 4;	// mxm is the size of Ai
+	int n = 4;	// nxn is the size of AN
 	FILE *fp;
 	
 	fp = fopen("data.txt", "w+");
@@ -112,7 +131,7 @@ int main() {
 			matC[j].matval[i] = rand() % val_max ;
 		}
 //		fprintf(fp, "C%d\n", j);
-		print_matrix(matC[j].nrow, matC[j].ncol, matB[j].matval, fp);		
+		print_matrix(matC[j].nrow, matC[j].ncol, matC[j].matval, fp);		
 		
 		// Initialize G
 		for	(int i=0; i<m*1; i++){
@@ -123,14 +142,14 @@ int main() {
 	
 	}
 
-	// INitialize AN
+	// Initialize AN
 	for	(int i=0; i<n*n; i++){
 		matAN.matval[i] = rand() % val_max ;
 	}
 //	fprintf(fp, "AN\n");
 	print_matrix(matAN.nrow, matAN.ncol, matAN.matval, fp);		
 
-	// INitialize GN
+	// Initialize GN
 	for	(int i=0; i<n*1; i++){
 		matGN.matval[i] = rand() % val_max ;
 	}
@@ -138,6 +157,8 @@ int main() {
 	print_matrix(matGN.nrow, matGN.ncol, matGN.matval, fp);
 
 	fclose(fp);
+    printf("Write Done\n");
+
 	return 0;
 }
 

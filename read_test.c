@@ -2,26 +2,37 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/resource.h>
 #include "bbdf.h"
 
+
 // gcc t2.c -llapack -std=c99
-int print_matrix(int nrow, int ncol, double * M) {
-
-	for (int i=0; i<nrow; i++){
-		for(int j=0; j<ncol; j++){
-//			printf("%f ", M[i*ncol + j]);
-		}
-//		printf("\n");
-	}
-	return 0;
-}
-
 
 int main() {
+
+    const rlim_t kStackSize = 1024 * 1024 * 1024;   // min stack size = 32 MB
+    struct rlimit rl;
+    int result;
+
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if (result == 0)
+    {
+        if (rl.rlim_cur < kStackSize)
+        {
+            rl.rlim_cur = kStackSize;
+            result = setrlimit(RLIMIT_STACK, &rl);
+            if (result != 0)
+            {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
+        }
+    }
 
 // ---------------------------------------------------------------------
 // START OF READ MATRIX DATA FROM FILE
 // ---------------------------------------------------------------------
+
+
 
 	FILE *fp;
 	fp = fopen("data.txt", "r");
@@ -66,38 +77,38 @@ int main() {
 		for	(int i=0; i<m*m; i++){
 			fscanf(fp, "%lf", &matA[j].matval[i]);
 		}
-		print_matrix(matA[j].nrow, matA[j].ncol, matA[j].matval);
+//		print_matrix(matA[j].nrow, matA[j].ncol, matA[j].matval);
 
 		// Initialize B
 		for	(int i=0; i<m*n; i++){
 			fscanf(fp, "%lf", &matB[j].matval[i]);
 		}
-		print_matrix(matB[j].nrow, matB[j].ncol, matB[j].matval);
+//		print_matrix(matB[j].nrow, matB[j].ncol, matB[j].matval);
 
 		// Initialize C
 		for	(int i=0; i<n*m; i++){
 			fscanf(fp, "%lf", &matC[j].matval[i]);
 		}
-		print_matrix(matC[j].nrow, matC[j].ncol, matC[j].matval);
+//		print_matrix(matC[j].nrow, matC[j].ncol, matC[j].matval);
 
 		// Initialize G
 		for	(int i=0; i<m*1; i++){
 			fscanf(fp, "%lf", &matG[j].matval[i]);
 		}
-		print_matrix(matG[j].nrow, matG[j].ncol, matG[j].matval);
+//		print_matrix(matG[j].nrow, matG[j].ncol, matG[j].matval);
 	}
 
 	// Initialize AN
 	for	(int i=0; i<n*n; i++){
 		fscanf(fp, "%lf", &matAN.matval[i]);
 	}
-	print_matrix(matAN.nrow, matAN.ncol, matAN.matval);
+//	print_matrix(matAN.nrow, matAN.ncol, matAN.matval);
 
 	// Initialize GN
 	for	(int i=0; i<n*1; i++){
 		fscanf(fp, "%lf", &matGN.matval[i]);
 	}
-	print_matrix(matGN.nrow, matGN.ncol, matGN.matval);
+//	print_matrix(matGN.nrow, matGN.ncol, matGN.matval);
 
 	fclose(fp);
 
@@ -105,14 +116,14 @@ int main() {
 // END OF READ MATRIX DATA FROM FILE
 // ---------------------------------------------------------------------
 
-//	printf("******************** Matrix Read Done ******************\n" );
-	int N1 = N-1;
+	printf("******************** Matrix Read Done ******************\n" );
 
-    clock_t tStart = clock();
+	clock_t tStart = clock();
+//	solve_bbd( N-1 , m, n, matA, matB, matC, matG, matX, matAN, matGN, matXN);
+	clock_t end = clock();
+	printf("Total Time taken: %.4fms\n", (double)(end - tStart)/(CLOCKS_PER_SEC*0.001));
 
-	solve_bbd( N1 , m, n, matA, matB, matC, matG, matX, matAN, matGN, matXN);
-
-    printf("Time taken: %.4fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+	solve_bbd_full(N , m, n, matA, matB, matC, matG, matAN, matGN);
 
 	return 0;
 }
